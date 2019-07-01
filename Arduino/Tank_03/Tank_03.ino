@@ -11,7 +11,7 @@
 const unsigned long dt = 50;                    //time resolution (ms)
 
 //display settings
-const unsigned long displayCycleTime = 3000;     //time per screen  (ms)
+const unsigned long displayCycleTime = 4000;     //time per screen  (ms)
 
 //------------------------- SETTINGS
 
@@ -19,8 +19,8 @@ const unsigned long displayCycleTime = 3000;     //time per screen  (ms)
 File logFile;
 const String fileName = "log.csv";
 const int pinCS = 53;
-bool sd_connected = false;
-bool sd_connectedPrev = true;
+bool loggingError = false;
+bool loggingErrorPrev = true;
 
 //clock things
 RTC_DS3231 rtc;   //clock object
@@ -35,10 +35,21 @@ const int rs = 8, en = 9, d4 = 4, d5 = 5, d6 = 6, d7 = 7;         // shield pins
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);                        //lcd initialise
 
 //PINS:
-const int loggingErrorLED = 22;
-const int floatSensorPin = 31;
-const int resetButtonPin = 30;
-const int potPin = A8;
+const int loggingErrorRedLED    = 22;
+const int loggingErrorGreenLED  = 23;
+const int floatSensorPin        = 31;
+const int resetButtonPin        = 30;
+const int potPin                = A8;
+const int rxReceivedPin         = 26;
+const int rxAPin                = 26;
+const int rxBPin                = 26;
+const int rxCPin                = 26;
+const int rxDPin                = 26;
+const int txAPin                = 26;
+const int txBPin                = 26;
+const int txCPin                = 26;
+const int txDPin                = 26;
+
 
 //sensor data
 bool devicePower = false;
@@ -49,9 +60,14 @@ bool resetButton = false;
 bool resetButtonPrev = false;
 int pot = 0;
 int potPrev = 0;
-bool manualOverride = false;
-bool pumpStatus = false;
-bool pumpStatusPrev = false;
+bool manual_override = false;
+bool manual_overridePrev = false;
+bool manual_power = false;
+bool manual_powerPrev = false;
+bool pump_instruction = false;
+bool pump_instructionPrev = false;
+bool pump_running = false;
+bool pump_runningPrev = false;
 
 //lcd variables
 int seconds = 0;
@@ -97,8 +113,8 @@ void loop() {
   //display
   lcd_check();
 
-  //log
-  logger();
+  //scan for events
+  eventDetector();
 
   //wait until next time division
   unsigned long t1 = millis();
@@ -123,6 +139,7 @@ void clock_setup() {
     // for example to set January 27 2017 at 12:56 you would call:
     // rtc.adjust(DateTime(2017, 1, 27, 12, 56, 0));
   }
+  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   clock_rtc();
   pumpSince = now;
 }
@@ -137,11 +154,11 @@ void sd_setup() {
   // SD Card Initialization
   if (SD.begin()) {
     Serial.println("SD card connected");
-    sd_connected = true;
+    loggingError = false;
   }
   else {
     Serial.println("SD card connection failed");
-    sd_connected = false;
+    loggingError = true;
     return;
   }
 
@@ -161,12 +178,12 @@ void sd_setup() {
 }
 
 void sd_logEvent(String event, String value) {
-  if (!sd_connected) {
+  if (loggingError) {
     Serial.println("Attempting to reconnect sd card");
     sd_setup();
   }
 
-  if (sd_connected) {
+  if (!loggingError) {
     SD.exists(fileName);
     
     char dat[30];
@@ -201,7 +218,7 @@ void sd_logEvent(String event, String value) {
     }
     // if the file didn't open, print an error:
     else {
-      sd_connected = false;
+      loggingError = true;
       Serial.println("Error writing to log");
     }
   }
@@ -212,11 +229,11 @@ void sd_logEvent(String event, String value) {
 void lcd_check() {
   displayCounter++;
   if (displayCounter == dispLim) {
-    lcd_page_pumpStatus();
+    lcd_page_pump();
   }
   else if (displayCounter == 2*dispLim) {
     lcd_page_timeAndDate();
-    if (sd_connected) displayCounter = 0;
+    if (!loggingError) displayCounter = 0;
   }
   else if (displayCounter == 3*dispLim) {
     lcd_page_loggingError();
@@ -239,14 +256,14 @@ void lcd_page_waterLevel() {
   
 }
 
-void lcd_page_pumpStatus() {
+void lcd_page_pump() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  if      (!manualOverride) lcd.print("PUMP - auto");
+  if      (!manual_override) lcd.print("PUMP - auto");
   else                      lcd.print("PUMP - manual");
   lcd.setCursor(0, 1);
   char since_buf[16];
-  if (pumpStatus) sprintf(since_buf, "on since %02d:%02d", pumpSince.hour(), pumpSince.minute());
+  if (pump_running) sprintf(since_buf, "on since %02d:%02d", pumpSince.hour(), pumpSince.minute());
   else            sprintf(since_buf, "off since %02d:%02d", pumpSince.hour(), pumpSince.minute());
   lcd.print(since_buf);
 }
@@ -266,19 +283,10 @@ void lcd_page_timeAndDate() {
 void lcd_page_loggingError() {
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print("LOGGING ERROR!");
+  lcd.print("LOG ERROR since:");
   lcd.setCursor(0, 1);
-  long dif = now.secondstime() - logErrorSince.secondstime();
-  long ss = dif % 60;
-  dif /= 60; // now it is minutes
-  long mm = dif % 60;
-  dif /= 60; // now it is hours
-  long hh = dif % 24;
-  dif /= 24; // now it is days
-  long dd = dif;
-  
   char buf[16];
-  sprintf(buf, "for %d days %02d:%02d", (int)dd, (int)hh, (int)mm);
+  sprintf(buf, "%04d/%02d/%02d %02d:%02d", logErrorSince.year(), logErrorSince.month(), logErrorSince.day(), logErrorSince.hour(), logErrorSince.minute());
   lcd.print(buf);
 }
 
@@ -292,7 +300,8 @@ void lcd_page_event(String event, String value) {
 }
 
 void pin_setup() {
-  pinMode(loggingErrorLED, OUTPUT);
+  pinMode(loggingErrorRedLED, OUTPUT);
+  pinMode(loggingErrorGreenLED, OUTPUT);
   pinMode(floatSensorPin, INPUT);
   pinMode(resetButtonPin, INPUT);
   pinMode(potPin, INPUT);
@@ -321,48 +330,57 @@ void transmit(bool sig) {
 
 }
 
-void logger() {
+void eventDetector() {
   //device power
-  if (devicePower && !devicePowerPrev)        logEvent("power", "on");
+  if (devicePower && !devicePowerPrev)              logEvent("power", "on");
   devicePowerPrev = devicePower;
 
   //float sensor
-  if (floatSensor && !floatSensorPrev)        logEvent("water_level", "high");
-  if (!floatSensor && floatSensorPrev)        logEvent("water_level", "low");
+  if (floatSensor && !floatSensorPrev)              logEvent("water_level", "high");
+  if (!floatSensor && floatSensorPrev)              logEvent("water_level", "low");
   floatSensorPrev = floatSensor;
 
   //logging error
-  if (sd_connected && !sd_connectedPrev){
-    digitalWrite(loggingErrorLED, LOW);
-  }
-  if (!sd_connected && sd_connectedPrev){
-    digitalWrite(loggingErrorLED, HIGH);
+  if (loggingError && !loggingErrorPrev){
+    digitalWrite(loggingErrorRedLED, HIGH);
+    digitalWrite(loggingErrorGreenLED, LOW);
     logErrorSince = now;
   }
-  sd_connectedPrev = sd_connected;
+  if (!loggingError && loggingErrorPrev){
+    digitalWrite(loggingErrorRedLED, LOW);
+    digitalWrite(loggingErrorGreenLED, HIGH);
+  }
+  loggingErrorPrev = loggingError;
 
   //radio RX
 
   //radio TX
 
   //reset button
-  if (resetButton && !resetButtonPrev)        logEvent("reset", "pressed");
+  if (resetButton && !resetButtonPrev)                logEvent("reset", "pressed");
   resetButtonPrev = resetButton;
 
   //manual override
-
+  if (manual_override && !manual_overridePrev)        logEvent("mode", "manual");
+  if (!manual_override && manual_overridePrev)        logEvent("mode", "auto");
+  manual_overridePrev = manual_override;
+  
   //manual power
+  if (manual_power && !manual_powerPrev)              logEvent("manual_override", "pump_on");
+  if (!manual_power && manual_powerPrev)              logEvent("manual_override", "pump_off");
+  manual_powerPrev = manual_power;
 
-  //pump status
-  if (pumpStatus && !pumpStatusPrev){
-    logEvent("pump", "on");
-    pumpSince = now;
-  }
-  if (!pumpStatus && pumpStatusPrev){
-    logEvent("pump", "off");
-    pumpSince = now;
-  }
-  pumpStatusPrev = pumpStatus;
+  //pump instruction status
+  if (pump_instruction && !pump_instructionPrev)      logEvent("transmission", "pump_on");
+  if (!pump_instruction && pump_instructionPrev)      logEvent("transmission", "pump_off");
+  pump_instructionPrev = pump_instruction;
+  
+  //pump running status
+  if (pump_running && !pump_runningPrev)             logEvent("pump_running", "on");  pumpSince = now;
+  if (!pump_running && pump_runningPrev)             logEvent("pump_running", "off"); pumpSince = now;
+  pump_runningPrev = pump_running;
+
+  
 
   //pot
   if (abs(pot - potPrev) > 10){
