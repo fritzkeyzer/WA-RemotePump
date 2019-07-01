@@ -15,7 +15,7 @@ const unsigned long displayCycleTime = 4000;     //time per screen  (ms)
 
 //pump controller settings
 const unsigned long pumpSwitchTime = 5000;      //time before pump switches on or off (ms)
-const unsigned long pumpErrorRetryTime = 5000;  //time after an error before retrying to start or stop pump (ms)
+const unsigned long pumpErrorRetryTime = 20000;  //time after an error before retrying to start or stop pump (ms)
 
 //------------------------- SETTINGS
 
@@ -33,6 +33,7 @@ DateTime now;     //time object
 DateTime pumpSince;
 DateTime logErrorSince;
 DateTime waterLevelSince;
+DateTime commsErrorSince;
 
 //lcd things
 //const int rs = 11, en = 12, d4 = 7, d5 = 8, d6 = 9, d7 = 10;    // pins
@@ -44,20 +45,27 @@ int displayCounter = 0;
 const int dispLim = displayCycleTime / dt;
 
 //comms variables
+bool tx_a = false;
+bool tx_aPrev = false;
+bool tx_b = false;
+bool tx_bPrev = false;
 int tx_a_counter = 0;
 int tx_b_counter = 0;
 int rx_a_counter = 0;
 int rx_b_counter = 0;
-const int transmitLim = 1200 / dt;
+const int transmitLim = 3000 / dt;
 const int receiveLim = 1000 / dt;
 
 //pump control variables
 int pumpSwitchCounter = 0;
 const int pumpSwitchLim = pumpSwitchTime / dt;
 int pumpErrorCounter = 0;
-const int pumpErrorLim = 2 * (pumpSwitchLim + transmitLim + receiveLim);
+int pumpNoErrorCounter = 0;
+const int pumpErrorLim = receiveLim;
 int pumpErrorRetryCounter = 0;
 const int pumpErrorRetryLim = pumpErrorRetryTime / dt;
+bool intention = false;
+bool intentionPrev = false; 
 
 //PINS:
 const int loggingErrorRedLED    = 22;
@@ -85,6 +93,8 @@ bool rx_a = false;
 bool rx_b = false;
 bool rx_c = false;
 bool rx_d = false;
+bool rx_aPrev = false;
+bool rx_bPrev = false;
 
 //states
 bool manual_override = false;
@@ -92,11 +102,9 @@ bool manual_overridePrev = false;
 bool manual_power = false;
 bool manual_powerPrev = false;
 bool pump_instruction = false;
-bool pump_instructionPrev = false;
 bool pump_running = false;
-bool pump_runningPrev = false;
-bool pump_error = false;
-bool pump_errorPrev = false;
+bool comms_error = false;
+bool comms_errorPrev = false;
 
 
 
@@ -171,7 +179,7 @@ void clock_setup() {
     // for example to set January 27 2017 at 12:56 you would call:
     // rtc.adjust(DateTime(2017, 1, 27, 12, 56, 0));
   }
-  //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
   clock_rtc();
   pumpSince = now;
 }
@@ -247,6 +255,8 @@ void sd_logEvent(String event, String value) {
       Serial.print(event);
       Serial.print(" - ");
       Serial.println(value);
+
+      logErrorSince = now;
     }
     // if the file didn't open, print an error:
     else {
@@ -268,10 +278,20 @@ void lcd_check() {
   }
   else if (displayCounter == 3*dispLim) {
     lcd_page_timeAndDate();
-    if (!loggingError) displayCounter = 0;
+    if (!loggingError && !comms_error) displayCounter = 0;
   }
   else if (displayCounter == 4*dispLim) {
-    lcd_page_loggingError();
+    if (loggingError){
+      lcd_page_loggingError();
+      if (!comms_error) displayCounter = 0;
+    }
+    else {
+      lcd_page_commsError();
+      displayCounter = 0;
+    }
+  }
+  else if (displayCounter == 5*dispLim){
+    lcd_page_commsError();
     displayCounter = 0;
   }
 }
@@ -322,6 +342,16 @@ void lcd_page_loggingError() {
   lcd.print(buf);
 }
 
+void lcd_page_commsError(){
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("COMMS ERROR since:");
+  lcd.setCursor(0, 1);
+  char buf[16];
+  sprintf(buf, "%04d/%02d/%02d %02d:%02d", commsErrorSince.year(), commsErrorSince.month(), commsErrorSince.day(), commsErrorSince.hour(), commsErrorSince.minute());
+  lcd.print(buf);
+}
+
 void lcd_page_event(String event, String value) {
   displayCounter = 0;
   lcd.clear();
@@ -368,22 +398,28 @@ void sensorPoll() {
 void transmit() {
   if (pump_instruction){
     digitalWrite(tx_b_pin, LOW);
+    tx_b = false;
     if (tx_a_counter < transmitLim){
       tx_a_counter++;
       digitalWrite(tx_a_pin, HIGH);
+      tx_a = true;
     }
     else {
       digitalWrite(tx_a_pin, LOW);
+      tx_a = false;
     }
   }
   else {
     digitalWrite(tx_a_pin, LOW);
+    tx_a = false;
     if (tx_b_counter < transmitLim){
       tx_b_counter++;
       digitalWrite(tx_b_pin, HIGH);
+      tx_b = true;
     }
     else {
       digitalWrite(tx_b_pin, LOW);
+      tx_b = false;
     }
   }
 }
@@ -407,6 +443,28 @@ void receive(){
   else {
     rx_b_counter = 0;
   }
+
+  //Error detector
+  if ((rx_a && tx_a) || (rx_b && tx_b)){
+    if (pumpNoErrorCounter > pumpErrorLim){
+      comms_error = false;
+      pumpErrorCounter = 0;
+    }
+    else {
+      pumpNoErrorCounter++;
+    }
+  }
+  if ((!rx_a && tx_a) || (!rx_b && tx_b)){
+    pumpNoErrorCounter = 0;
+    //Serial.println(String(pumpErrorCounter));
+    if (pumpErrorCounter > pumpErrorLim){
+      comms_error = true;
+      commsErrorSince = now;
+    }
+    else {
+      pumpErrorCounter++;
+    }
+  }
 }
 
 void eventDetector() {
@@ -415,10 +473,10 @@ void eventDetector() {
   devicePowerPrev = devicePower;
 
   //float sensor
-  if (floatSensor && !floatSensorPrev){                logEvent("water_level", "high");  
+  if (floatSensor && !floatSensorPrev){               logEvent("water_level", "high");  
     waterLevelSince = now;
     }
-  if (!floatSensor && floatSensorPrev){                logEvent("water_level", "low");   
+  if (!floatSensor && floatSensorPrev){               logEvent("water_level", "low");   
     waterLevelSince = now;
   }
   floatSensorPrev = floatSensor;
@@ -427,7 +485,6 @@ void eventDetector() {
   if (loggingError && !loggingErrorPrev){
     digitalWrite(loggingErrorRedLED, HIGH);
     digitalWrite(loggingErrorGreenLED, LOW);
-    logErrorSince = now;
   }
   if (!loggingError && loggingErrorPrev){
     digitalWrite(loggingErrorRedLED, LOW);
@@ -450,31 +507,31 @@ void eventDetector() {
   manual_powerPrev = manual_power;
 
   //pump instruction status
-  if (pump_instruction && !pump_instructionPrev){      logEvent("tx", "pump_start"); 
+  if (tx_a && !tx_aPrev){                             logEvent("tx", "pump_start"); 
     tx_a_counter = 0; 
-    pumpSwitchCounter = 0;
-    pumpErrorCounter = 0;
   }
-  if (!pump_instruction && pump_instructionPrev){      logEvent("tx", "pump_stop");
+  tx_aPrev = tx_a;
+  
+  if (tx_b && !tx_bPrev){                             logEvent("tx", "pump_stop");
     tx_b_counter = 0;
-    pumpSwitchCounter = 0;
-    pumpErrorCounter = 0;
   }
-  pump_instructionPrev = pump_instruction;
+  tx_bPrev = tx_b;
   
   //pump running status
-  if (pump_running && !pump_runningPrev){              logEvent("pump", "running");  
+  if (rx_a && !rx_aPrev){                             logEvent("rx", "pump_running");  
     pumpSince = now;
   }
-  if (!pump_running && pump_runningPrev){              logEvent("pump", "stopped");  
+  rx_aPrev = rx_a;
+  
+  if (rx_b && !rx_bPrev){                             logEvent("rx", "pump_stopped");  
     pumpSince = now;
   }
-  pump_runningPrev = pump_running;
+  rx_bPrev = rx_b;
 
   //pump error
-  if (pump_error && !pump_errorPrev)              logEvent("pump", "error");
-  //if (!pump_error && pump_errorPrev)              logEvent("pump", "no_error");
-  pump_errorPrev = pump_error;
+  if (comms_error && !comms_errorPrev)                  logEvent("rx", "error_echo_failed");
+  if (!comms_error && comms_errorPrev)                  logEvent("rx", "error_resolved");
+  comms_errorPrev = comms_error;
   
 }
 
@@ -485,7 +542,6 @@ void logEvent(String event, String value) {
 
 void pumpController(){
   //pump intention control
-  bool intention = false;
   if (manual_override){
     if (manual_power){
       intention = true;  
@@ -502,38 +558,38 @@ void pumpController(){
       intention = false; 
     }
   }
+
+  if (intention && !intentionPrev){
+    pumpSwitchCounter = 0;
+    tx_a_counter = 0;
+  }
+  else if (!intention && intentionPrev){
+    pumpSwitchCounter = 0;
+    tx_b_counter = 0;
+  }
+  intentionPrev = intention;
   
   //pump_instruction delay
   if (intention != pump_instruction){
-    pumpSwitchCounter++;
+    //Serial.println(String(pumpSwitchCounter));
     if (pumpSwitchCounter > pumpSwitchLim){
       pump_instruction = intention;
     }
-  }
-
-  //Error detector
-  if (pump_instruction != pump_running){
-    if (pumpErrorCounter > pumpErrorLim){
-      pump_error = true;
-    }
     else {
-      pumpErrorCounter++;
+      pumpSwitchCounter++;
     }
-  }
-  else {
-    pump_error = false;
-    pumpErrorCounter = 0;
   }
 
   //Error retry
-  if (pump_error){
+  if (comms_error){
     if (pumpErrorRetryCounter > pumpErrorRetryLim){
       tx_a_counter = 0;
       tx_b_counter = 0;
       pumpErrorRetryCounter = 0;
-      pump_error = false;
+      //comms_error = false;
       pumpErrorCounter = 0;
-      Serial.println("retrying");
+      //logEvent("error", "retrying_transmission");
+      Serial.println("retrying transmission");
     }
     else {
       pumpErrorRetryCounter++;
