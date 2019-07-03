@@ -71,13 +71,13 @@ void display_screen_event(String event, String value)
 	lcd.setCursor(0, 1);
 	lcd.print(value);
 	
-	//delay(500);
+	delay(500);
 }
 
 void display_screen_time()
 {
 	char tim[16];
-	sprintf(tim, "Time %02d:%02d", time_now.hour(), time_now.minute());
+	sprintf(tim, "Time %02d:%02d:%02d", time_now.hour(), time_now.minute(), time_now.second());
 	//sprintf(tim, "Time %02X:%02X:%02X", Clock.getHour(h12, PM), Clock.getMinute(), Clock.getSecond());
 	char dat[16];
 	sprintf(dat, "Date %04d/%02d/%02d", time_now.year(), time_now.month(), time_now.day());

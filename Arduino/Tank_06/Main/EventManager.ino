@@ -46,31 +46,31 @@ void event_update()
 	if (state_manualOverride && !flag_manualOverride)	event_log("MODE", "MANUAL", true);
 	if (!state_manualOverride && flag_manualOverride)	event_log("MODE", "AUTO", true);
 	
-	if (state_manualPower && !flag_manualPower)			event_log("MANUAL", "PUMP_START", true);
-	if (!state_manualPower && flag_manualPower)			event_log("MANUAL", "PUMP_STOP", true);
-	
 	if (state_ecoMode && !flag_ecoMode)					event_log("ECO_MODE", "ON", true);
 	if (!state_ecoMode && flag_ecoMode)					event_log("ECO_MODE", "OFF", true);
-	
-	if (state_waterLevel && !flag_waterLevel)			event_log("WATER_LEVEL", "HIGH", true);
-	if (!state_waterLevel && flag_waterLevel)			event_log("WATER_LEVEL", "LOW", true);
-	
-	if (state_pumpPower && !flag_pumpPower)				event_log("PUMP", "RUNNING", true);
-	if (!state_pumpPower && flag_pumpPower)				event_log("PUMP", "STOPPED", true);
-	
-	if (state_pumpIntention && !flag_pumpIntention)		event_log("CONTROL", "PUMP_START", false);
-	if (!state_pumpIntention && flag_pumpIntention)		event_log("CONTROL", "PUMP_STOP", false);
-	
-	if (comm_txA && !flag_txOn)							event_log("TRANSMIT", "PUMP_START", true);
-	if (comm_txB && !flag_txOff)						event_log("TRANSMIT", "PUMP_STOP", true);
-	
-	if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
-	if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
 	
 	if (state_isPeakTime && !flag_isPeakTime)			event_log("ECO_MODE", "PEAK", true);
 	if (!state_isPeakTime && flag_isPeakTime)			event_log("ECO_MODE", "OFFPEAK", true);
 	
+	if (state_waterLevel && !flag_waterLevel)			event_log("WATER_LEVEL", "HIGH", true);
+	if (!state_waterLevel && flag_waterLevel)			event_log("WATER_LEVEL", "LOW", true);
+	
+	if (state_manualPower && !flag_manualPower)			event_log("MANUAL", "PUMP_START", true);
+	if (!state_manualPower && flag_manualPower)			event_log("MANUAL", "PUMP_STOP", true);
+	
+	if (state_pumpIntention && !flag_pumpIntention)		event_log("CONTROL", "PUMP_START", false);
+	if (!state_pumpIntention && flag_pumpIntention)		event_log("CONTROL", "PUMP_STOP", false);
+	
+	//if (comm_txA && !flag_txOn)						event_log("TRANSMIT", "PUMP_START", true);
+	//if (comm_txB && !flag_txOff)						event_log("TRANSMIT", "PUMP_STOP", true);
+	
+	if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
+	if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
+	
 	if (!log_error && flag_logError)					event_log("LOGGER", "ERROR_RESOLVED", false);
+	
+	if (state_pumpPower && !flag_pumpPower)				event_log("PUMP", "RUNNING", true);
+	if (!state_pumpPower && flag_pumpPower)				event_log("PUMP", "STOPPED", true);
 	
 	
 	//update flags

@@ -69,6 +69,8 @@ void clock_update()
 static void clock_resetTime()
 {
 	//initTime = RTClib::now();
+	//Clock.adjust(DateTime(F(__DATE__), F(__TIME__)));			//keep this line commented out
+	
 	time_init = Clock.now();
 	initTimeSeconds = time_init.unixtime();
 	//initTimeSeconds = 0;

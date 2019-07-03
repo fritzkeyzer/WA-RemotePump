@@ -8,7 +8,7 @@
 
 //settings
 unsigned long mediumInterval = 1000;		//state handling interval (ms)
-unsigned long slowInterval = 3000;			//display page scroll interval (ms)
+unsigned long slowInterval = 4000;			//display page scroll interval (ms)
 
 
 //times
@@ -97,9 +97,6 @@ void loop()
 
 void loop_fast()
 {
-	//time update			- update current time, update from rtc once per hour
-	clock_update();
-	
 	//input check			- toggle flags based off input readings
 	input_update();
 	
@@ -114,6 +111,9 @@ void loop_fast()
 
 void loop_medium()
 {
+	//time update			- update current time, update from rtc once per hour
+	clock_update();
+	
 	//control scheme		- determine whether pump should be pumping or not
 	control_update();
 	
