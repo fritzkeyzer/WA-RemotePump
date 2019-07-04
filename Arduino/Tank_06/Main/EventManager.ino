@@ -40,6 +40,14 @@ void event_setup()
 
 void event_update()
 {
+	if (!flag_devicePower)
+	{
+		flag_manualOverride = !state_manualOverride;
+		if (state_manualOverride) flag_manualPower 	= !state_manualPower;
+		flag_ecoMode 		= !state_ecoMode;
+		flag_waterLevel 	= !state_waterLevel;
+	}
+	
 	//detect differences between flags and states
 	if (!flag_devicePower)								event_log("POWER", "ON", true);
 	
@@ -64,11 +72,18 @@ void event_update()
 	//if (comm_txA && !flag_txOn)						event_log("TRANSMIT", "PUMP_START", true);
 	//if (comm_txB && !flag_txOff)						event_log("TRANSMIT", "PUMP_STOP", true);
 	
-	if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
-	if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
+	if (!flag_devicePower)
+	{
+		if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
+		if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
+	}
 	
 	if (!log_error && flag_logError)					event_log("LOGGER", "ERROR_RESOLVED", false);
 	
+	if (state_pumpStatusKnown && !flag_pumpStatusKnown)
+	{
+		flag_pumpPower 		= !state_pumpPower;
+	}
 	if (state_pumpPower && !flag_pumpPower)				event_log("PUMP", "RUNNING", true);
 	if (!state_pumpPower && flag_pumpPower)				event_log("PUMP", "STOPPED", true);
 	
@@ -86,6 +101,7 @@ void event_update()
 	flag_logError		= log_error;
 	flag_txOn			= comm_txA;
 	flag_txOff			= comm_txB;
+	flag_pumpStatusKnown= state_pumpStatusKnown;
 }
 
 void event_log(String event, String value, bool toDisplay)

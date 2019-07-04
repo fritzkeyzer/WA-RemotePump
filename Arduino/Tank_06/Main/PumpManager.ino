@@ -4,7 +4,7 @@ void control_update()
 	state_waterLevel = input_floatSwitch;
 	
 	state_manualOverride = input_manualOverride;
-	state_manualPower = input_manualPower;
+	if (state_manualOverride) state_manualPower = input_manualPower;
 	state_ecoMode = input_ecoMode;
 	
 	
@@ -37,6 +37,11 @@ void control_update()
 					//pump should be on
 					state_pumpIntention = true;
 				}
+			}
+			else
+			{
+				//pump should be off
+				state_pumpIntention = false;
 			}
 		}
 		else

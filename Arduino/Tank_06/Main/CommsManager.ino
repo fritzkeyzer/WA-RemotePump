@@ -9,14 +9,8 @@ unsigned long t = 0;
 
 void comms_update()
 {
-	if (input_rxA != comm_rxA)
-	{
-		commRxATimeStart = millis();
-	}
-	if (input_rxB != comm_rxB)
-	{
-		commRxBTimeStart = millis();
-	}
+	if (input_rxA != comm_rxA) commRxATimeStart = millis();
+	if (input_rxB != comm_rxB) commRxBTimeStart = millis();
 	comm_rxA = input_rxA;
 	comm_rxB = input_rxB;
 	
@@ -42,6 +36,7 @@ void comms_update()
 				if (!comm_error) time_commsErrorSince = time_now;
 				comm_error = true;
 			}
+			else state_pumpStatusKnown = true;
 		}
 	}
 	
@@ -66,6 +61,7 @@ void comms_update()
 				if (!comm_error) time_commsErrorSince = time_now;
 				comm_error = true;
 			}
+			else state_pumpStatusKnown = true;
 		}
 	}
 	
@@ -81,10 +77,7 @@ void comms_update()
 			comm_error = false;
 		}
 	}
-	else 
-	{
-		commRxATimeStart = millis();
-	}
+	else commRxATimeStart = millis();
 	
 	if (comm_rxB)
 	{
@@ -98,10 +91,7 @@ void comms_update()
 			comm_error = false;
 		}
 	}
-	else 
-	{
-		commRxBTimeStart = millis();
-	}
+	else commRxBTimeStart = millis();
 	
 	output_txA = comm_txA;
 	output_txB = comm_txB;
@@ -110,7 +100,17 @@ void comms_update()
 
 void comms_updateState()
 {
-	
+	if (!state_pumpStatusKnown)
+	{
+		if (state_pumpIntention)
+		{
+			comms_startPump();
+		}
+		else if (!state_pumpIntention)
+		{
+			comms_stopPump();
+		}
+	}
 	if (!comm_error)
 	{
 		if (state_pumpIntention && !state_pumpPower)

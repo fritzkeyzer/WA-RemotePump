@@ -49,6 +49,7 @@ bool state_waterLevel = false;
 bool state_pumpIntention = false;
 bool state_pumpPower = false;
 bool state_isPeakTime = false;
+bool state_pumpStatusKnown = false;
 
 //event flags
 bool flag_devicePower = false;
@@ -63,6 +64,7 @@ bool flag_isPeakTime = false;
 bool flag_logError = false;
 bool flag_txOn = false;
 bool flag_txOff = false;
+bool flag_pumpStatusKnown = false;
 
 //loop variables
 unsigned long loop_slowTimer = millis();
@@ -71,12 +73,15 @@ unsigned long loop_medTimer = millis();
 void setup() 
 {
 	Serial.begin(9600);
-	Serial.println("hello");
+	Serial.println("Serial Connected. Hello");
 	
 	clock_setup();
 	display_setup();
 	io_setup();
 	event_setup();
+	
+	loop_fast();
+	loop_medium();
 }
 
 void loop() 
@@ -105,8 +110,6 @@ void loop_fast()
 	
 	//comms manager			- reset flags - set flags for received data
 	comms_update();
-	
-	
 }
 
 void loop_medium()
