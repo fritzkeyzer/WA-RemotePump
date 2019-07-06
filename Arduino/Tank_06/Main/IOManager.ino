@@ -65,7 +65,7 @@ void output_update()
 	else 
 	{
 		digitalWrite(pin_pumpStatusGreen, true);
-		digitalWrite(pin_pumpStatusRed, false);
+		digitalWrite(pin_pumpStatusRed, true);
 	}
 	
 	if (input_rxA || input_rxB)
