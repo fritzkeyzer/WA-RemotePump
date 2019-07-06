@@ -1,3 +1,5 @@
+//http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
+
 unsigned long transmitTime = 3000L;		//ms
 unsigned long receiveTime = 1000L;		//ms
 
@@ -30,13 +32,14 @@ void comms_update()
 			comm_txB = false;
 			
 			//if state doesnt match what we tried to send, there was an error
-			if (!state_pumpPower)
+			if (!state_pumpPower || !state_pumpStatusKnown)
 			{
 				//Serial.println("error");
 				if (!comm_error) time_commsErrorSince = time_now;
 				comm_error = true;
+				state_pumpStatusKnown = false;
 			}
-			else state_pumpStatusKnown = true;
+			//else state_pumpStatusKnown = true;
 		}
 	}
 	
@@ -55,13 +58,14 @@ void comms_update()
 			comm_txB = false;
 			comm_txA = false;
 			//if state doesnt match what we tried to send, there was an error
-			if (state_pumpPower)
+			if (state_pumpPower || !state_pumpStatusKnown)
 			{
 				//Serial.println("error");
 				if (!comm_error) time_commsErrorSince = time_now;
 				comm_error = true;
+				state_pumpStatusKnown = false;
 			}
-			else state_pumpStatusKnown = true;
+			//else state_pumpStatusKnown = true;
 		}
 	}
 	
@@ -74,7 +78,9 @@ void comms_update()
 			//echo success
 			if (!state_pumpPower) time_pumpSince = time_now;
 			state_pumpPower = true;
-			comm_error = false;
+			state_pumpStatusKnown = true;
+			if (state_pumpPower == state_pumpIntention) comm_error = false;
+			//Serial.println("rx: pump on");
 		}
 	}
 	else commRxATimeStart = millis();
@@ -88,7 +94,9 @@ void comms_update()
 			//echo success
 			if (state_pumpPower) time_pumpSince = time_now;
 			state_pumpPower = false;
-			comm_error = false;
+			state_pumpStatusKnown = true;
+			if (state_pumpPower == state_pumpIntention) comm_error = false;
+			//Serial.println("rx: pump off");
 		}
 	}
 	else commRxBTimeStart = millis();

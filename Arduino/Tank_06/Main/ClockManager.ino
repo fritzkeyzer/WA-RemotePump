@@ -7,6 +7,7 @@ bool h12;
 bool PM;
 bool reset = false;
 
+//peak 6am - 10am & 5pm - 8pm
 const int pA_min = 6;			//morning peak period start time
 const int pA_max = 10;			//morning peak period stop time
 const int pB_min = 17;			//evening peak period start time

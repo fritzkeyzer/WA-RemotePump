@@ -40,15 +40,15 @@ void display_update()
 		case 3:
 			display_screen_ecoStatus();
 			currentScreen++;
-			if (comm_error)		currentScreen = 4;
-			else if (log_error)	currentScreen = 5;
+			if (flag_commError)		currentScreen = 4;
+			else if (flag_logError)	currentScreen = 5;
 			else				currentScreen = 0;
 			
 		break;
 		case 4:
 			display_screen_commError();
 			currentScreen++;
-			if (log_error)		currentScreen = 5;
+			if (flag_logError)		currentScreen = 5;
 			else				currentScreen = 0;
 		break;
 		case 5:

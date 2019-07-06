@@ -1,3 +1,13 @@
+/*
+Fritz Keyzer July 2019
+fritzkeyzer@gmail.com
+
+For Carel Kostense
+carel@waterworksautomation.co.za
+www.waterworksautomation.co.za
+*/
+
+
 #include <stdio.h>
 #include <LiquidCrystal.h>
 #include <Wire.h>

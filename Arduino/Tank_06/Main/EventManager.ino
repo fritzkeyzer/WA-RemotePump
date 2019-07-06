@@ -3,6 +3,8 @@ File logFile;
 const String fileName = "log.csv";
 const int pinCS = 53;
 
+//https://howtomechatronics.com/tutorials/arduino/arduino-sd-card-data-logging-excel-tutorial/
+
 void event_setup()
 {
 	pinMode(pinCS, OUTPUT);
@@ -72,13 +74,13 @@ void event_update()
 	//if (comm_txA && !flag_txOn)						event_log("TRANSMIT", "PUMP_START", true);
 	//if (comm_txB && !flag_txOff)						event_log("TRANSMIT", "PUMP_STOP", true);
 	
-	if (!flag_devicePower)
-	{
-		if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
-		if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
-	}
+	if (comm_error && !flag_commError)					event_log("COMMS", "ERROR", true);
+	if (!comm_error && flag_commError)					event_log("COMMS", "ERROR_RESOLVED", true);
 	
 	if (!log_error && flag_logError)					event_log("LOGGER", "ERROR_RESOLVED", false);
+	
+	if (state_pumpStatusKnown && !flag_pumpStatusKnown)	event_log("PUMP", "STATUS_KNOWN", false);
+	if (!state_pumpStatusKnown && flag_pumpStatusKnown)	event_log("PUMP", "STATUS_UNKNOWN", false);
 	
 	if (state_pumpStatusKnown && !flag_pumpStatusKnown)
 	{
@@ -108,6 +110,19 @@ void event_log(String event, String value, bool toDisplay)
 {
 	if (toDisplay) display_screen_event(event, value);
 	event_logSD(event, value);
+	
+	char dat[30];
+	char tim[30];
+	sprintf(dat, "%04d/%02d/%02d", time_now.year(), time_now.month(), time_now.day());
+	sprintf(tim, "%02d:%02d:%02d", time_now.hour(), time_now.minute(), time_now.second());
+	Serial.print("logging event: ");
+	Serial.print(dat);
+	Serial.print(" - ");
+	Serial.print(tim);
+	Serial.print(" - ");
+	Serial.print(event);
+	Serial.print(" - ");
+	Serial.println(value);
 }
 
 void event_logSD(String event, String value)
@@ -144,14 +159,14 @@ void event_logSD(String event, String value)
 			logFile.println(value);
 			logFile.close(); // close the file
 
-			Serial.print("logging event: ");
-			Serial.print(dat);
-			Serial.print(" - ");
-			Serial.print(tim);
-			Serial.print(" - ");
-			Serial.print(event);
-			Serial.print(" - ");
-			Serial.println(value);
+			//Serial.print("logging event: ");
+			//Serial.print(dat);
+			//Serial.print(" - ");
+			//Serial.print(tim);
+			//Serial.print(" - ");
+			//Serial.print(event);
+			//Serial.print(" - ");
+			//Serial.println(value);
 
 			time_logErrorSince = time_now;
 		}
