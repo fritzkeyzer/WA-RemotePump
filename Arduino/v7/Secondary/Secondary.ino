@@ -13,7 +13,7 @@ www.waterworksautomation.co.za
 
 //settings
 SimpleThread fastTimer(20);						//input and output states 
-SimpleThread heartbeatTimer(5000);				//heartbeat pulse
+SimpleThread heartbeatTimer(2500);				//heartbeat pulse
 
 
 
