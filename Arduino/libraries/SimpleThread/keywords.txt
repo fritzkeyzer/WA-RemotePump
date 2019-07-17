@@ -1,0 +1,29 @@
+#######################################
+# Syntax Coloring Map For SimpleThread
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+SimpleThread	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+setInterval	KEYWORD2
+start	KEYWORD2
+stop	KEYWORD2	
+check	KEYWORD2
+reset	KEYWORD2
+buttonIsPressTimeout	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
