@@ -1,8 +1,8 @@
 //http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
 
 //settings:
-SimpleThread heartbeatTimer(5000);				//heartbeat pulse
-SimpleThread errorTime(60000);					//time after which no rx is considered an error
+SimpleThread heartbeatTimer(10000);				//heartbeat pulse
+SimpleThread errorTime(10000);					//time after which no rx is considered an error
 SimpleThread commLedTime(100);
 
 const int radio_id = 1;
