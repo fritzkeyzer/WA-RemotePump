@@ -14,7 +14,6 @@ www.waterworksautomation.co.za
 //settings
 SimpleThread fastTimer(20);						//input and output states 
 
-
 //input states
 bool input_pumpPower = false;
 
