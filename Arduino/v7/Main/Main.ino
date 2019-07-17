@@ -15,7 +15,7 @@ www.waterworksautomation.co.za
 #include "RTClib.h"
 #include <SD.h>
 #include <SPI.h>
-#include "NRF_Fritz.h"
+#include "NRF_Fritz.h"							//version=0.1.1
 #include <SimpleThread.h> 
 
 //settings

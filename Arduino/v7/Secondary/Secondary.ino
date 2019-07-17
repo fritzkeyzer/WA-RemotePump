@@ -13,8 +13,6 @@ www.waterworksautomation.co.za
 
 //settings
 SimpleThread fastTimer(20);						//input and output states 
-SimpleThread heartbeatTimer(5000);				//heartbeat pulse
-
 
 
 //input states
@@ -56,11 +54,5 @@ void loop()
 		
 		// pump controller		- send signals to pump
 		//pumpController_update();
-	}
-	
-	if (heartbeatTimer.check())
-	{
-		//Comms heartbeat		- send current intention as a reminder
-		comms_heartbeat();
 	}
 }
