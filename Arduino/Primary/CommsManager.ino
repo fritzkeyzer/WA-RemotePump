@@ -32,6 +32,7 @@ void comms_update()
 	if (errorTime.check())
 	{
 		comm_error = true;
+		state_pumpStatusKnown = false;
 	}
 	
 	if (commLedTime.check())
@@ -74,6 +75,7 @@ void comms_messageCallback(CommsUnit::message_e _msg)
 	commLedTime.reset();
 	errorTime.reset();
 	comm_error = false;
+	state_pumpStatusKnown = true;
 	Serial.print("RX: ");
 	switch (_msg)
 	{

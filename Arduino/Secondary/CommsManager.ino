@@ -1,7 +1,7 @@
 //http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
 
 SimpleThread errorTime(120000);
-SimpleThread heartbeatTimer(2500);				//heartbeat pulse
+SimpleThread heartbeatTimer(1000);				//heartbeat pulse
 
 const int radio_id = 1;
 const int radio_cePin = 9;

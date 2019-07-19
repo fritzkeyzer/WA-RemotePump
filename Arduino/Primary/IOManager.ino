@@ -44,7 +44,8 @@ void input_update()
 
 void output_update()
 {
-	if (!comm_error)
+	
+	if (state_pumpStatusKnown)
 	{
 		digitalWrite(pin_pumpStatusGreen, !state_pumpPower);
 		digitalWrite(pin_pumpStatusRed, state_pumpPower);
