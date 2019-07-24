@@ -7,6 +7,12 @@ carel@waterworksautomation.co.za
 www.waterworksautomation.co.za
 */
 
+/*
+
+Primary running arduino Mega 2560
+
+*/
+
 //builtin libraries
 #include <stdio.h>
 #include <LiquidCrystal.h>

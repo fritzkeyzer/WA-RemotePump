@@ -7,6 +7,12 @@ carel@waterworksautomation.co.za
 www.waterworksautomation.co.za
 */
 
+/*
+
+Secondary running on Arduino Uno
+
+*/
+
 //custom libraries - also copied to libraries folder
 #include "NRF_Fritz.h"
 #include <SimpleThread.h> 
