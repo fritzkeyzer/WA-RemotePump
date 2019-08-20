@@ -17,6 +17,9 @@ const int pA_max = 10;			//morning peak period stop time
 const int pB_min = 17;			//evening peak period start time
 const int pB_max = 20;			//evening peak period stop time
 
+const int day_min = 8;			//day time - for low flow alarm
+const int day_max = 20;			//night time
+
 void clock_setup()
 {
 	Century = false;
@@ -24,30 +27,31 @@ void clock_setup()
 
 	Wire.begin();
 	
+	//Serial.println("Wire started");
+	
 	if (! Clock.begin()) 
 	{
 		Serial.println("Couldn't find RTC Module");
 		while (1);
 	}
-
-	//if (Clock.lostPower()) 
-	//{
-	//	Serial.println("RTC lost power, lets set the time!");
-	//	Clock.adjust(DateTime(F(__DATE__), F(__TIME__)));
-	//}
 	
-	if (Clock.lostPower())
+	if (Clock.lostPower()) 
 	{
 		Serial.println("RTC lost power, lets set the time!");
-		// following line sets the RTC to the date & time this sketch was compiled
 		Clock.adjust(DateTime(F(__DATE__), F(__TIME__)));
-		// This line sets the RTC with an explicit date & time, for example to set
-		// January 21, 2014 at 3am you would call:
-		// rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
 	}
 	
-	clock_resetTime();
+	//if (Clock.lostPower())
+	//{
+	//	Serial.println("RTC lost power, lets set the time!");
+	//	// following line sets the RTC to the date & time this sketch was compiled
+	//	Clock.adjust(DateTime(F(__DATE__), F(__TIME__)));
+	//	// This line sets the RTC with an explicit date & time, for example to set
+	//	// January 21, 2014 at 3am you would call:
+	//	// rtc.adjust(DateTime(2014, 1, 21, 3, 0, 0));
+	//}
 	
+	clock_resetTime();
 	clock_update();
 	
 	//time_commsErrorSince = time_now;
@@ -83,6 +87,7 @@ void clock_update()
 	}
 	
 	clock_checkEcoTime();
+	clock_checkDaytime();
 }
 
 static void clock_resetTime()
@@ -107,4 +112,15 @@ void clock_checkEcoTime()
 	{
 		state_isPeakTime = false;
 	}
+}
+
+void clock_checkDaytime()
+{
+	bool ret = false;
+	int h = time_now.hour();
+	if (day_min <= h && h < day_max)
+	{
+		ret = true;
+	}
+	state_isDay = ret;
 }

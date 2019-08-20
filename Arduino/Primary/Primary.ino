@@ -1,5 +1,7 @@
 /*
-Fritz Keyzer July 2019
+August 2019
+
+Fritz Keyzer
 fritzkeyzer@gmail.com
 
 For Carel Kostense
@@ -9,13 +11,16 @@ www.waterworksautomation.co.za
 
 /*
 
-Primary running arduino Mega 2560
+Primary running MCU-PRO Mega 2560
+
+Arduino IDE 1.8.5
 
 */
 
 //builtin libraries
 #include <stdio.h>
-#include <LiquidCrystal.h>
+//#include <LiquidCrystal.h>
+#include <LiquidCrystal_I2C.h>
 #include <Wire.h>
 #include <SPI.h>
 
@@ -52,10 +57,20 @@ bool comm_error = false;
 bool log_error = false;
 
 //control states:
-bool state_pumpIntention = false;
-bool state_pumpPower = false;
+bool state_transferPumpIntention = false;
+bool state_riverPumpPower = false;
+bool state_transferPumpPower = false;
 bool state_isPeakTime = false;
 bool state_pumpStatusKnown = false;
+//enum lowflowState
+//{
+//	OK,
+//	WARNING,
+//	ALARM,
+//};
+CommsUnit::lowflowState state_lowflow = CommsUnit::OK;
+CommsUnit::lowflowState flag_lowflow = CommsUnit::OK;
+bool state_isDay = false;
 
 //event flags
 bool flag_devicePower = false;
@@ -63,25 +78,39 @@ bool flag_manualOverride = false;
 bool flag_manualPower = false;
 bool flag_ecoMode = false;
 bool flag_waterLevel = false;
-bool flag_pumpIntention = false;
-bool flag_pumpPower = false;
+bool flag_transferPumpIntention = false;
+bool flag_riverPumpPower = false;
+bool flag_transferPumpPower = false;
 bool flag_commError = false;
 bool flag_isPeakTime = false;
 bool flag_logError = false;
 bool flag_txOn = false;
 bool flag_txOff = false;
 bool flag_pumpStatusKnown = false;
+bool flag_isDay = false;
+
+//flow logging
+unsigned long flowCounter_thisHour = 0;				//clicks this hour
+const float flow_volumePerTick = 1;					//amount of water represented by one tick
 
 void setup() 
 {
 	Serial.begin(9600);
 	Serial.println("Serial Connected. Hello");
+	Serial.println("Primary Unit");
 	
 	comms_setup();
+	//Serial.println("Comms Setup complete");
 	clock_setup();
+	//Serial.println("Clock Setup complete");
 	display_setup();
+	//Serial.println("LCD Setup complete");
 	io_setup();
+	//Serial.println("IO Setup complete");
 	event_setup();
+	//Serial.println("Event Setup complete");
+	
+	Serial.println("Setup complete");
 }
 
 void loop() 
@@ -109,6 +138,6 @@ void loop()
 		control_update();
 		
 		//event log				- log events to sd card, set flags equal to states
-		event_update();
+		event_update();			
 	}
 }
