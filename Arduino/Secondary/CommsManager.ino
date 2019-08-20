@@ -1,13 +1,15 @@
 //http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
 
-SimpleThread errorTime(120000);
+SimpleThread errorTime(240000);
 SimpleThread heartbeatTimer(1000);				//heartbeat pulse
 
 const int radio_id = 1;
 const int radio_cePin = 9;
-const int radio_csnPin = 8;
+const int radio_csnPin = 10;
 
 CommsUnit radioUnit(radio_id, radio_cePin, radio_csnPin);
+
+CommsUnit::message_s message;
 
 
 void comms_setup()
@@ -23,64 +25,41 @@ void comms_update()
 	if (heartbeatTimer.check())
 	{
 		//Comms heartbeat		- send current status
-		comms_heartbeat();
+		comms_sendUpdate();
 	}
 	
 	if (errorTime.check())
 	{
 		comm_error = true;
+		Serial.println("comm_error");
+		state_transferPumpIntention = false;
 	}
 }
 
-void comms_pumpRunning()
+void comms_sendUpdate()
 {
-	radioUnit.sendMessage(1, CommsUnit::PUMP_RUNNING);
+	message.riverPumpStatus = input_riverPumpPower;
+	message.transferPumpStatus = input_transferPumpPower;
+	message.lowflowStatus = state_lowflow;
+	
+	radioUnit.sendMessage(1, message);
 }
 
-void comms_pumpStopped()
-{
-	radioUnit.sendMessage(1, CommsUnit::PUMP_STOPPED);
-}
-
-void comms_heartbeat()
-{
-	if (input_pumpPower)
-	{
-		comms_pumpRunning();
-	}
-	else
-	{
-		comms_pumpStopped();
-	}
-}
-
-void comms_messageCallback(CommsUnit::message_e _msg)
+void comms_messageCallback(CommsUnit::message_s _msg)
 {
 	errorTime.reset();
 	comm_error = false;
 	
-	Serial.print("RX: ");
-	switch (_msg)
-	{
-		case CommsUnit::PUMP_START:
-			Serial.println("Start command");
-			if (!state_pumpIntention)
-			{
-				//pumpController_pumpStart();
-			}
-			state_pumpIntention = true;
-			comms_heartbeat();
-		break;
-		
-		case CommsUnit::PUMP_STOP:
-			Serial.println("Stop command");
-			if (state_pumpIntention)
-			{
-				//pumpController_pumpStop();
-			}
-			state_pumpIntention = false;
-			comms_heartbeat();
-		break;
-	}
+	//Serial.println("RX: ");
 	
+	if (_msg.pumpIntention && !state_transferPumpIntention)
+	{
+		Serial.println("RX: pump should be ON");
+	}
+	else if (!_msg.pumpIntention && state_transferPumpIntention)
+	{
+		Serial.println("RX: pump should be OFF");
+	}
+	state_transferPumpIntention = _msg.pumpIntention;
+	state_day = _msg.isDay;
 }

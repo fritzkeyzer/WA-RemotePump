@@ -1,5 +1,7 @@
 /*
-Fritz Keyzer July 2019
+August 2019
+
+Fritz Keyzer
 fritzkeyzer@gmail.com
 
 For Carel Kostense
@@ -9,7 +11,9 @@ www.waterworksautomation.co.za
 
 /*
 
-Secondary running on Arduino Uno
+Secondary running on RF-NANO
+
+Arduino IDE 1.8.5
 
 */
 
@@ -19,31 +23,29 @@ Secondary running on Arduino Uno
 
 
 //settings
-SimpleThread fastTimer(20);						//input and output states 
+SimpleThread fastTimer(20);						//input and output states
 
 //input states
-bool input_pumpPower = false;
-
-//output states
-bool output_pumpOn = false;
-bool output_pumpOff = false;
+bool input_riverPumpPower = false;
+bool input_transferPumpPower = false;
 
 //comms
 bool comm_error = false;
 
-
 //control states:
-bool state_pumpIntention = false;
-bool state_pumpPower = false;
+bool state_transferPumpIntention = false;
+bool state_day = true;
+CommsUnit::lowflowState state_lowflow = CommsUnit::OK;
 
 void setup() 
 {
 	Serial.begin(9600);
 	Serial.println("Serial Connected. Hello");
+	Serial.println("Secondary Unit");
 	
 	io_setup();
 	comms_setup();
-	//pumpController_setup();
+	flow_setup();
 }
 
 void loop() 
@@ -58,7 +60,7 @@ void loop()
 		//output set			- toggle control pins
 		output_update();
 		
-		// pump controller		- send signals to pump
-		//pumpController_update();
+		//alarm					- alarm routine
+		alarm_update();			
 	}
 }
