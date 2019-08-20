@@ -22,7 +22,7 @@ void CommsUnit::update(void)
 	}
 }
 
-void CommsUnit::sendMessage(uint8_t _to, CommsUnit::message_e _msg)
+void CommsUnit::sendMessage(uint8_t _to, CommsUnit::message_s _msg)
 {
 	_TX_radioData.ToRadioId = _to;
 	_TX_radioData.Message = _msg;
@@ -30,7 +30,7 @@ void CommsUnit::sendMessage(uint8_t _to, CommsUnit::message_e _msg)
 	sendPacket();
 }
 
-void CommsUnit::attachMessageCallback(void func(CommsUnit::message_e _msg))
+void CommsUnit::attachMessageCallback(void func(CommsUnit::message_s _msg))
 {
 	messageCallbackMethod = func;
 }

@@ -22,20 +22,43 @@ class CommsUnit
 {
 
 	public:
-		enum message_e
+		//enum message_e
+		//{
+		//	PUMP_TRANSFER_START,
+		//	PUMP_TRANSFER_STOP,
+		//	PUMP_RIVER_RUNNING,
+		//	PUMP_RIVER_STOPPED,
+		//	PUMP_TRANSFER_RUNNING,
+		//	PUMP_TRANSFER_STOPPED,
+		//	TIME_DAY,
+		//	TIME_NIGHT,
+		//	LOWFLOW_OK,
+		//	LOWFLOW_WARNING,
+		//	LOWFLOW_ALARM,
+		//};
+		
+		enum lowflowState
 		{
-			PUMP_START,
-			PUMP_STOP,
-			PUMP_RUNNING,
-			PUMP_STOPPED,
+			OK,
+			WARNING,
+			ALARM,
+		};
+		
+		struct message_s
+		{
+			bool pumpIntention;
+			bool isDay;
+			bool riverPumpStatus;
+			bool transferPumpStatus;
+			lowflowState lowflowStatus;
 		};
 		
 		
 		CommsUnit(uint8_t _id, uint8_t _cePin, uint8_t _csnPin);
 		void init(void);
 		void update(void);
-		void sendMessage(uint8_t _to, CommsUnit::message_e _msg);
-		void attachMessageCallback(void func(CommsUnit::message_e _msg));
+		void sendMessage(uint8_t _to, CommsUnit::message_s _msg);
+		void attachMessageCallback(void func(CommsUnit::message_s _msg));
 
 
 	private:
@@ -46,7 +69,7 @@ class CommsUnit
 		{
 			uint8_t FromRadioId;
 			uint8_t ToRadioId;
-			message_e Message;
+			message_s Message;
 			//char Message[16];    				//careful on size here
 		};
 		
@@ -62,7 +85,7 @@ class CommsUnit
 		RadioPacket _RX_radioData;
 		
 		//callback
-		typedef void (*callbackFuncType)(CommsUnit::message_e);
+		typedef void (*callbackFuncType)(CommsUnit::message_s);
 		CommsUnit::callbackFuncType messageCallbackMethod;
 		
 		
