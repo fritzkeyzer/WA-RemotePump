@@ -62,6 +62,8 @@ bool state_riverPumpPower = false;
 bool state_transferPumpPower = false;
 bool state_isPeakTime = false;
 bool state_pumpStatusKnown = false;
+
+bool state_startup = true;
 //enum lowflowState
 //{
 //	OK,
@@ -91,7 +93,7 @@ bool flag_isDay = false;
 
 //flow logging
 unsigned long flowCounter_thisHour = 0;				//clicks this hour
-const float flow_volumePerTick = 1;					//amount of water represented by one tick
+const float flow_volumePerTick = 100;					//amount of water represented by one tick
 
 void setup() 
 {

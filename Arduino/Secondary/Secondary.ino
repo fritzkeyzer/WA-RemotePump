@@ -30,7 +30,7 @@ bool input_riverPumpPower = false;
 bool input_transferPumpPower = false;
 
 //comms
-bool comm_error = false;
+bool comm_error = true;
 
 //control states:
 bool state_transferPumpIntention = false;

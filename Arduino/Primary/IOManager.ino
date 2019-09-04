@@ -101,8 +101,11 @@ void output_update()
 	digitalWrite(pin_waterLevelGreen, input_waterLevel);
 	digitalWrite(pin_waterLevelRed, !input_waterLevel);
 	
-	digitalWrite(pin_commsStatusGreen, !comm_error);
-	digitalWrite(pin_commsStatusRed, comm_error);
+	if (!state_startup)
+	{
+		digitalWrite(pin_commsStatusGreen, !comm_error);
+		digitalWrite(pin_commsStatusRed, comm_error);
+	}
 	
 	digitalWrite(pin_sdCardStatusGreen, !log_error);
 	digitalWrite(pin_sdCardStatusRed, log_error);

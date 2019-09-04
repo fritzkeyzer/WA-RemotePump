@@ -35,6 +35,7 @@ void comms_update()
 	{
 		comm_error = true;
 		state_pumpStatusKnown = false;
+		state_startup = false;
 	}
 	
 	if (commLedTime.check())
@@ -136,6 +137,7 @@ void comms_messageCallback(CommsUnit::message_s _msg)
 	errorTime.reset();
 	comm_error = false;
 	state_pumpStatusKnown = true;
+	state_startup = false;
 	//Serial.println("RX: ");
 	
 	state_riverPumpPower = _msg.riverPumpStatus;

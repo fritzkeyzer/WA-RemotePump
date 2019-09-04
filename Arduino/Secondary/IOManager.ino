@@ -52,19 +52,19 @@ void io_setup()
 
 void input_update()
 {
-	if (!digitalRead(pin_in_riverPumpPower) != input_riverPumpPower)
+	if (digitalRead(pin_in_riverPumpPower) != input_riverPumpPower)
 	{
 		Serial.print("river pump = ");
-		Serial.println(!digitalRead(pin_in_riverPumpPower));
+		Serial.println(digitalRead(pin_in_riverPumpPower));
 	}
-	input_riverPumpPower = !digitalRead(pin_in_riverPumpPower);
+	input_riverPumpPower = digitalRead(pin_in_riverPumpPower);
 	
-	if (!digitalRead(pin_in_transferPumpPower) != input_transferPumpPower)
+	if (digitalRead(pin_in_transferPumpPower) != input_transferPumpPower)
 	{
 		Serial.print("transfer pump = ");
-		Serial.println(!digitalRead(pin_in_transferPumpPower));
+		Serial.println(digitalRead(pin_in_transferPumpPower));
 	}
-	input_transferPumpPower = !digitalRead(pin_in_transferPumpPower);
+	input_transferPumpPower = digitalRead(pin_in_transferPumpPower);
 }
 
 void output_update()
