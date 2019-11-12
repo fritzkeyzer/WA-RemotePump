@@ -1,4 +1,5 @@
-SimpleThread timer_flowLoggingInterval(180000);		//flow logging interval timer
+//SimpleThread timer_flowLoggingInterval(180000);		//flow logging interval timer
+const float flow_logAmount = 500;	//litres
 
 //sd card logging
 File logFile;
@@ -44,6 +45,7 @@ void event_setup()
 
 void event_update()
 {
+	/*
 	if (time_now.minute() == 0)
 	{
 		if (timer_flowLoggingInterval.check())
@@ -51,6 +53,9 @@ void event_update()
 			flow_logVolume();
 		}
 	}
+	*/
+	
+	flow_logVolume();
 	
 	
 	if (!flag_devicePower)
@@ -221,7 +226,10 @@ void flow_logVolume()
 	//clear variable
 	
 	float volume = flow_volumePerTick * (float)flowCounter_thisHour;
-	String volString= String(volume);
-	event_log("TRANSFER_PUMP_VOLUME", volString, false);
-	flowCounter_thisHour = 0;
+	if (volume >= flow_logAmount)
+	{
+		String volString= String(volume);
+		event_log("TRANSFER_PUMP_VOLUME", volString, true);
+		flowCounter_thisHour = 0;
+	}
 }
