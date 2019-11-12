@@ -4,6 +4,7 @@ SimpleThread clockResetTimer(86400000);			//clock reset interval (24hrs in ms)
 
 //DS3231 Clock;
 RTC_DS3231 Clock;
+DateTime time_init;
 uint32_t initTimeSeconds;
 
 bool Century = false;
