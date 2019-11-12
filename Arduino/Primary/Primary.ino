@@ -7,6 +7,10 @@ fritzkeyzer@gmail.com
 For Carel Kostense
 carel@waterworksautomation.co.za
 www.waterworksautomation.co.za
+
+im editing over here
+
+here again
 */
 
 /*
@@ -31,12 +35,12 @@ Arduino IDE 1.8.5
 #include <SimpleThread.h> 
 
 //settings
-SimpleThread fastTimer(20);						//input and output states 
-SimpleThread mediumTimer(1000);					//control logic
+SimpleThread fastTimer(1000);						//input and output states 
+SimpleThread mediumTimer(5000);						//control logic
 
 //times
 DateTime time_now;
-DateTime time_init;
+//DateTime time_init;
 DateTime time_waterLevelSince;
 
 //input states
@@ -92,7 +96,7 @@ bool flag_pumpStatusKnown = false;
 bool flag_isDay = false;
 
 //flow logging
-unsigned long flowCounter_thisHour = 0;				//clicks this hour
+unsigned long flowCounter_thisHour = 0;					//clicks this hour
 const float flow_volumePerTick = 100;					//amount of water represented by one tick
 
 void setup() 
