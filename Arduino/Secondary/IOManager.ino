@@ -21,7 +21,7 @@ unsigned long lastTick = millis();
 //alarm things
 const float flow_volumePerTick = 100.0;								// (in litres) litres per tick of flow sensor
 const float flow_lowFlowThreshold = 1000.0;						// (in litres per hour) Low flow rate threshold
-SimpleThread timer_lowFlowAlarm(120000);						// (in ms) How long must the flow rate be below threshold before alarm is sounded?
+SimpleThread timer_lowFlowAlarm(60000);						// (in ms) How long must the flow rate be below threshold before alarm is sounded?
 SimpleThread timer_lowFlowDelay(300000);							// (in ms) How long should we wait after river pump comes on to check lowflow?
 bool state_lowFlowDelay = true;
 
