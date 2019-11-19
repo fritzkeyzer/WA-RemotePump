@@ -20,8 +20,8 @@ unsigned long lastTick = millis();
 
 //alarm things
 const float flow_volumePerTick = 100.0;								// (in litres) litres per tick of flow sensor
-const float flow_lowFlowThreshold = 1000.0;						// (in litres per hour) Low flow rate threshold
-SimpleThread timer_lowFlowAlarm(60000);						// (in ms) How long must the flow rate be below threshold before alarm is sounded?
+const float flow_lowFlowThreshold = 1000.0;							// (in litres per hour) Low flow rate threshold
+SimpleThread timer_lowFlowAlarm(60000);								// (in ms) How long must the flow rate be below threshold before alarm is sounded?
 SimpleThread timer_lowFlowDelay(300000);							// (in ms) How long should we wait after river pump comes on to check lowflow?
 bool state_lowFlowDelay = true;
 
@@ -124,13 +124,19 @@ void flow_interruptCallback()
 	{
 		if (!input_flowSensor && input_flowSensorPrev)
 		{
-			flow_currentFlowRate = 3600000/(millis() - lastTick);
+			//flow_currentFlowRate = 3600000/(millis() - lastTick);		//TODO multiply flow_volumePerTick "flow_currentFlowRate = flow_volumePerTick*(3600000/(millis()-lastTick));"
+			flow_currentFlowRate = flow_calcCurrentFlowRate();
 			Serial.print("Current flow rate (litres per hour): ");
 			Serial.println(flow_currentFlowRate);
 			lastTick = millis();
 		}
 	}
 	input_flowSensorPrev = input_flowSensor;
+}
+
+float flow_calcCurrentFlowRate()
+{
+	return flow_volumePerTick*(3600000/(millis()-lastTick));
 }
 
 void alarm_start()
@@ -156,7 +162,8 @@ void alarm_update()
 {
 	if (input_riverPumpPower && state_day)
 	{
-		float rate = 3600000 / (millis() - lastTick);
+		//float rate = 3600000 / (millis() - lastTick);			//TODO multiply flow_volumePerTick "float rate = flow_volumePerTick*(3600000/(millis()-lastTick));"
+		float rate = flow_calcCurrentFlowRate();
 		if (rate < flow_lowFlowThreshold)
 		{
 			flow_currentFlowRate = rate;
