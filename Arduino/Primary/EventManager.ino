@@ -229,7 +229,7 @@ void flow_logVolume()
 	if (volume >= flow_logAmount)
 	{
 		String volString= String(volume);
-		event_log("TRANSFER_PUMP_VOLUME", volString, true);
+		event_log("DISPENSED_LITRES", volString, true);
 		flowCounter_thisHour = 0;
 	}
 }
