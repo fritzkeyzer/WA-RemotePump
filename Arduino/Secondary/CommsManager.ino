@@ -1,7 +1,9 @@
 //http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
 
-SimpleThread errorTime(240000);
-SimpleThread heartbeatTimer(1000);				//heartbeat pulse
+unsigned long heartbeatTime = 5000;
+SimpleThread errorTime(300000);            //was 240000 (4 mins)
+SimpleThread heartbeatTimer(heartbeatTime);				//heartbeat pulse
+SimpleThread commLedTime(1000);
 
 const int radio_id = 1;
 const int radio_cePin = 9;
@@ -26,6 +28,9 @@ void comms_update()
 	{
 		//Comms heartbeat		- send current status
 		comms_sendUpdate();
+    unsigned long interval = 0.75*heartbeatTime + random(0.5*heartbeatTime);
+    heartbeatTimer.setInterval(interval);
+    heartbeatTimer.reset();
 	}
 	
 	if (errorTime.check())
@@ -33,7 +38,13 @@ void comms_update()
 		comm_error = true;
 		Serial.println("comm_error");
 		state_transferPumpIntention = false;
+    //comms_setup();
 	}
+
+ if (commLedTime.check())
+ {
+    output_rtxLed = 0;
+  }
 }
 
 void comms_sendUpdate()
@@ -48,8 +59,15 @@ void comms_sendUpdate()
 void comms_messageCallback(CommsUnit::message_s _msg)
 {
 	errorTime.reset();
-	comm_error = false;
 	
+  output_rtxLed = -1;
+  commLedTime.reset();
+	
+	if(comm_error)
+  {
+    Serial.println("comm_error resolved");
+  }
+  comm_error = false;
 	//Serial.println("RX: ");
 	
 	if (_msg.pumpIntention && !state_transferPumpIntention)

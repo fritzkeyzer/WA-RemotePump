@@ -1,23 +1,20 @@
 /*
-August 2019
-
-Fritz Keyzer
-fritzkeyzer@gmail.com
-
-For Carel Kostense
-carel@waterworksautomation.co.za
-www.waterworksautomation.co.za
-
-im editing over here
-
-here again
+  August 2019
+  Last update - March 2020
+  
+  Fritz Keyzer
+  fritzkeyzer@gmail.com
+  
+  For Carel Kostense
+  carel@waterworksautomation.co.za
+  www.waterworksautomation.co.za
 */
 
 /*
 
-Primary running MCU-PRO Mega 2560
-
-Arduino IDE 1.8.5
+  Primary running MCU-PRO Mega 2560
+  
+  Arduino IDE 1.8.10
 
 */
 
@@ -35,7 +32,7 @@ Arduino IDE 1.8.5
 #include <SimpleThread.h> 
 
 //settings
-SimpleThread fastTimer(1000);						//input and output states 
+SimpleThread fastTimer(100);						//input and output states 
 SimpleThread mediumTimer(5000);						//control logic
 
 //times

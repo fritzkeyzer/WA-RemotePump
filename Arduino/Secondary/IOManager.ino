@@ -70,7 +70,7 @@ void input_update()
 void output_update()
 {
 	digitalWrite(pin_out_siren, state_siren);
-	digitalWrite(pin_out_led, state_transferPumpIntention);
+	//digitalWrite(pin_out_led, state_transferPumpIntention);
 	digitalWrite(pin_out_pumpStart, state_pumpStart);
 	digitalWrite(pin_out_pumpStop, state_pumpStop);
 	
@@ -91,6 +91,15 @@ void output_update()
 		state_pumpStart = false;
 		state_pumpStop = false;
 	}
+
+ if (output_rtxLed == -1)
+ {
+    digitalWrite(pin_out_led, true);
+ }
+ else
+ {
+    digitalWrite(pin_out_led, false);
+ }
 }
 
 void pump_start()

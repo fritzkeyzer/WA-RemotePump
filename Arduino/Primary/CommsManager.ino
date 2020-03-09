@@ -1,9 +1,10 @@
 //http://wiki.seeedstudio.com/2KM_Long_Range_RF_link_kits_w_encoder_and_decoder/
 
 //settings:
-SimpleThread heartbeatTimer(4000);				//heartbeat pulse
-SimpleThread errorTime(60000);					//time after which no rx is considered an error
-SimpleThread commLedTime(100);
+
+SimpleThread heartbeatTimer(5000);				//heartbeat pulse
+SimpleThread errorTime(300000);					//time after which no rx is considered an error   (60000)
+SimpleThread commLedTime(200);
 
 const int radio_id = 1;
 const int radio_cePin = 49;
@@ -36,6 +37,7 @@ void comms_update()
 		comm_error = true;
 		state_pumpStatusKnown = false;
 		state_startup = false;
+    Serial.println("comm_error");
 	}
 	
 	if (commLedTime.check())
@@ -46,8 +48,9 @@ void comms_update()
 
 void comms_heartbeat()
 {
-	output_rtxLed = 1;
-	commLedTime.reset();
+  output_rtxLed = 1;
+  commLedTime.reset();
+	
 	
 	/*
 	if (state_transferPumpIntention)
@@ -73,6 +76,7 @@ void comms_heartbeat()
 	message.isDay = state_isDay;
 	
 	radioUnit.sendMessage(1, message);
+  //Serial.println("TX:");
 }
 
 /*
@@ -135,10 +139,15 @@ void comms_messageCallback(CommsUnit::message_s _msg)
 	output_rtxLed = -1;
 	commLedTime.reset();
 	errorTime.reset();
-	comm_error = false;
+	//comm_error = false;
 	state_pumpStatusKnown = true;
 	state_startup = false;
-	//Serial.println("RX: ");
+  
+	if(comm_error)
+  {
+    Serial.println("comm_error resolved");
+  }
+  comm_error = false;
 	
 	state_riverPumpPower = _msg.riverPumpStatus;
 	state_transferPumpPower = _msg.transferPumpStatus;
