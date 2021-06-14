@@ -1,2 +1,2 @@
-# Carel-RemotePump
-Remote pump controller project. Arduino source code
+# RemotePump
+Remote pump controller project. Microcontroller source code
